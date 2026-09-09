@@ -2,8 +2,8 @@ clc;
 clear;
 close all;
 
-d = 0.5;
-N = 8;
+d = 0.1;
+N = 80;
 scan_angle = 0;
 
 the = -90:1:90;
@@ -15,12 +15,8 @@ AF = ArrayFactor(d, N, THE, PHI, scan_angle);
 
 AFdB = 20*log10(abs(AF) / max(abs(AF(:))) + eps);
 
-figure(scan_angle)
-surf(PHI, THE, AFdB, 'EdgeColor', 'none')
-xlabel('\phi (deg)')
-ylabel('\theta (deg)')
-zlabel('Array Factor (dB)')
-title('Array Factor Pattern')
-colorbar
-view(2)
-shading interp
+figure(1)
+imagesc(AFdB)
+
+figure(2)
+plot(THE,AFdB);

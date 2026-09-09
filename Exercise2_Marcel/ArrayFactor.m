@@ -16,14 +16,18 @@ function AF = ArrayFactor(d, N, the, phi, scan_angle)
 %
 %   TODO: Implement the core array-factor computation.
 
-AF = zeros(size(the)); % Initialize the array factor array
-
-the = deg2rad(the);
+thetaRad = deg2rad(the);
+scanAngleRad = deg2rad(scan_angle);
 beta = 0;
 k = (2*pi);
-psi = beta + k*d* cos(the); 
+psi = beta + k*d* (cos(thetaRad) - cos(scanAngleRad)); 
 
-n = 1:N;
-AF = (1/10)*sum(exp(1i.*((n-1)'.*psi)));
+AF = zeros(size(thetaRad));
+
+for elementIndex = 1:(N - 1)
+    AF = AF + exp(1i * (elementIndex-1) * psi);
+end
+
+AF = AF / N;
 
 end
