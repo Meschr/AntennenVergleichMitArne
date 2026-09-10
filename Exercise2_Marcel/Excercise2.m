@@ -16,7 +16,7 @@ AF = ArrayFactor(d, N, THE, PHI, scan_angle);
 AFdB = 20*log10(abs(AF) / max(abs(AF(:))) + eps);
 
 figure(1)
-imagesc(AFdB)
+imagesc(AFdB) 
 
 figure(2)
 plot(THE,AFdB);
