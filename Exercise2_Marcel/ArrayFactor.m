@@ -17,17 +17,22 @@ function AF = ArrayFactor(d, N, the, phi, scan_angle)
 %   TODO: Implement the core array-factor computation.
 
 thetaRad = deg2rad(the);
+phiRad   = deg2rad(phi);
 scanAngleRad = deg2rad(scan_angle);
 beta = 0;
 k = (2*pi);
-psi = beta + k*d* (cos(thetaRad) - cos(scanAngleRad)); 
+
+% Richtungskosinus entlang der x-Achse (Array-Achse), Az/El-Konvention:
+u = cos(thetaRad) .* cos(phiRad);   % the = el, phi = az
+
+psi = beta + k*d* (u - cos(scanAngleRad)); 
 
 AF = zeros(size(thetaRad));
 
-for elementIndex = 1:(N - 1)
+for elementIndex = 1:N
     AF = AF + exp(1i * (elementIndex-1) * psi);
 end
 
-AF = AF / N;
+%AF = AF / N; 
 
 end

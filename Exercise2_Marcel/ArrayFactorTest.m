@@ -1,0 +1,31 @@
+clc;
+clear;
+close all;
+
+d = 0.5; %in wavelength
+N = 8;   %antenna elements
+scan_angle = 90;         % Broadside, passend zum unphasierten Toolbox-Array
+
+fc = 3e9;
+c = physconst("LightSpeed");
+lambda = c/fc;
+
+az = -180:1:180;
+el = 0;
+
+elem = dipole("Length", lambda/2, "Width", lambda/100);
+arr = linearArray("Element", elem, "NumElements", N, "ElementSpacing", d*lambda);
+
+AF = ArrayFactor(d, N, el*ones(size(az)), az, scan_angle);
+AFdB = 20*log10(abs(AF)/max(abs(AF)) + eps);
+
+AF_tb_dB = arrayFactor(arr, fc, az, el);
+AF_tb_dB = AF_tb_dB - max(AF_tb_dB);
+arrayFactor(arr, fc)
+
+figure
+plot(az, AFdB, 'LineWidth', 1.5); hold on
+plot(az, AF_tb_dB, '--', 'LineWidth', 1.5);
+xlabel('Azimut \phi (°)'); ylabel('AF (dB)');
+legend('Eigene Funktion', 'Antenna Toolbox');
+grid on
