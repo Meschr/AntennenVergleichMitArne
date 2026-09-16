@@ -23,9 +23,9 @@ beta = 0;
 k = (2*pi);
 
 % Richtungskosinus entlang der x-Achse (Array-Achse), Az/El-Konvention:
-u = cos(thetaRad) .* cos(phiRad);   % the = el, phi = az
+u = sin(thetaRad) .* cos(phiRad);   % the = el, phi = az
 
-psi = beta + k*d* (u - cos(scanAngleRad)); 
+psi = beta + k*d* (u - sin(scanAngleRad)); 
 
 AF = zeros(size(thetaRad));
 

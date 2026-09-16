@@ -3,7 +3,7 @@ clc; clear; %close all;
 %% Parameters
 d = 0.5;            % element spacing in wavelengths
 N = 8;              % number of elements
-scan_angle = 90;    % broadside (matches unphased toolbox array)
+scan_angle = 0;    % broadside (matches unphased toolbox array)
 fc = 3e9;
 c = physconst("LightSpeed");
 lambda = c/fc;
