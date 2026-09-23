@@ -1,0 +1,113 @@
+clear;
+clc;
+close all;
+
+%% Constants
+c = 3e8;
+f0 = 3e9;
+er = 2.33;
+h = 1.5e-3;
+
+%% Patch dimensions
+
+% Patch width
+W = c/(2*f0)*sqrt(2/(er+1));
+
+% Effective permittivity
+eeff = (er+1)/2 + ...
+       (er-1)/2*(1 + 12*h/W)^(-0.5);
+
+% Effective length
+Leff = c/(2*f0*sqrt(eeff));
+
+% Fringing extension
+dL = 0.412*h * ...
+    ((eeff+0.3)*(W/h+0.264)) / ...
+    ((eeff-0.258)*(W/h+0.8));
+
+% Physical patch length
+L = Leff - 2*dL;
+
+fprintf('W = %.2f mm\n', W*1e3);
+fprintf('L = %.2f mm\n', L*1e3);
+fprintf('eeff = %.3f\n', eeff);
+fprintf('dL = %.2f mm\n', dL*1e3);
+
+%% Wavenumber
+lambda0 = c/f0;
+k0 = 2*pi/lambda0;
+
+%% Theta
+theta = -90:0.1:90;
+th = deg2rad(theta);
+
+%% E-plane: phi = 0 deg
+phi_E = 0;
+
+Etheta_E = cos((k0*L/2).*sin(th));
+Ephi_E = zeros(size(theta));
+
+%% H-plane: phi = 90 deg
+phi_H = pi/2;
+
+x = (k0*W/2).*sin(th);
+
+% sinc(x) = sin(x)/x
+Ef_H = ones(size(x));
+idx = abs(x) > 1e-12;
+Ef_H(idx) = sin(x(idx))./x(idx);
+
+Etheta_H = zeros(size(theta));
+Ephi_H = -cos(th).*Ef_H;
+
+%% Normalize
+Etheta_E = abs(Etheta_E);
+Ephi_E   = abs(Ephi_E);
+
+Etheta_H = abs(Etheta_H);
+Ephi_H   = abs(Ephi_H);
+
+maxE = max([Etheta_E Ephi_E Etheta_H Ephi_H]);
+
+Etheta_E_dB = 20*log10(Etheta_E/maxE);
+Ephi_E_dB   = 20*log10(Ephi_E/maxE);
+
+Etheta_H_dB = 20*log10(Etheta_H/maxE);
+Ephi_H_dB   = 20*log10(Ephi_H/maxE);
+
+%% Limit dynamic range
+floor_dB = -40;
+
+Etheta_E_dB = max(Etheta_E_dB, floor_dB);
+Ephi_E_dB   = max(Ephi_E_dB, floor_dB);
+
+Etheta_H_dB = max(Etheta_H_dB, floor_dB);
+Ephi_H_dB   = max(Ephi_H_dB, floor_dB);
+
+%% Plot E-plane
+figure;
+plot(theta, Etheta_E_dB, 'LineWidth', 1.5);
+hold on;
+plot(theta, Ephi_E_dB, '--', 'LineWidth', 1.5);
+
+grid on;
+xlabel('\theta [deg]');
+ylabel('Normalized E-field [dB]');
+title('E-plane radiation pattern, \phi = 0°');
+legend('E_\theta','E_\phi');
+xlim([-90 90]);
+ylim([-40 0]);
+
+%% Plot H-plane
+figure;
+plot(theta, Etheta_H_dB, 'LineWidth', 1.5);
+hold on;
+plot(theta, Ephi_H_dB, '--', 'LineWidth', 1.5);
+
+grid on;
+xlabel('\theta [deg]');
+ylabel('Normalized E-field [dB]');
+title('H-plane radiation pattern, \phi = 90°');
+legend('E_\theta','E_\phi');
+xlim([-90 90]);
+ylim([-40 0]);
