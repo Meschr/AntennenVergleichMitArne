@@ -4,7 +4,6 @@ close all;
 
 %% Constants
 c = 3e8;        % Speed of Light    
-% c = 1/sqrt(u0*e0)    constant
 f0 = 3e9;       % resonance f
 er = 2.33;      % e for Material RT/duroid 5870
 h = 1.5e-3;     % height of dielecctricum
@@ -19,7 +18,7 @@ eeff = (er+1)/2 + ...
        (er-1)/2*(1 + 12*h/W)^(-0.5);
 
 % Effective length
-Leff = c/(2*f0*sqrt(er));     % er instead of eeff
+Leff = c/(2*f0*sqrt(eeff));
 
 % Fringing extension
 dL = 0.412*h * ...
