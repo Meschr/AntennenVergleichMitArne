@@ -14,7 +14,7 @@ theta0 = scan_angles(1);
 figure('Name', sprintf('Scan angle = %d deg', theta0))
 I = exp(-1i*2*pi*d*sin(deg2rad(theta0)));
 hold on
-for p = 1:2
+for p = 1:2  
     phi = planes(p)*ones(size(theta));
     AF = ArrayFactor(d, I, theta, phi);
     AFdB = 20*log10(abs(AF));

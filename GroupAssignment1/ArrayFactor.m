@@ -18,8 +18,16 @@ function AF = ArrayFactor(d, I, the, phi)
 %       AF  - complex array factor evaluated at each (the, phi) pair,
 %             same size as `the`/`phi`
 
+thetaRad = deg2rad(the);
+phiRad   = deg2rad(phi);
+k = (2*pi);
 
+% Richtungskosinus entlang der y-Achse (Array-Achse)
+u = sin(thetaRad) .* sin(phiRad);
 
-
+AF = zeros(size(u));
+for n = 1:length(I)
+  AF = AF + I(n) .* exp(1i.*k.*d(n).*u);
+end
 
 end
