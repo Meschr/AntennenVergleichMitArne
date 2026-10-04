@@ -15,16 +15,13 @@ h = 1.5e-3;     % height of dielecctricum
 W = c/(2*f0)*sqrt(2/(er+1));
 
 % Effective permittivity
-eeff = (er+1)/2 + ...
-       (er-1)/2*(1 + 12*h/W)^(-0.5);
+eeff = (er+1)/2 + (er-1)/2*(1 + 12*h/W)^(-0.5);
 
 % Effective length
-Leff = c/(2*f0*sqrt(er));     % er instead of eeff
+Leff = c/(2*f0*sqrt(eeff));     % er instead of eeff
 
 % Fringing extension
-dL = 0.412*h * ...
-    ((eeff+0.3)*(W/h+0.264)) / ...
-    ((eeff-0.258)*(W/h+0.8));
+dL = 0.412*h * ((eeff+0.3)*(W/h+0.264)) / ((eeff-0.258)*(W/h+0.8));
 
 % Physical patch length
 L = Leff - 2*dL;
@@ -55,7 +52,7 @@ x = (k0*W/2).*sin(th);
 
 % sinc(x) = sin(x)/x
 Ef_H = ones(size(x));
-idx = abs(x) > 1e-12;
+idx = abs(x) > 1e-12;               % Sinc-Funktion-Absicherung: Die idx = abs(x) > 1e-12;-Abfrage verhindert elegant ein NaN bei \(\theta = 0^\circ\) (Division durch Null beim Berechnen von \(\sin(x)/x\)).
 Ef_H(idx) = sin(x(idx))./x(idx);
 
 Etheta_H = zeros(size(theta));
