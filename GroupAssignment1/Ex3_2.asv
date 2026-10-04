@@ -1,0 +1,238 @@
+clear;
+clc;
+close all;
+
+%% Constants
+c = 3e8;        % Speed of Light    
+% c = 1/sqrt(u0*e0)    constant
+f0 = 3e9;       % resonance f
+er = 2.33;      % e for Material RT/duroid 5870
+h = 1.5e-3;     % height of dielecctricum
+
+%% Patch dimensions
+
+% Patch width
+W = c/(2*f0)*sqrt(2/(er+1));
+
+% Effective permittivity
+eeff = (er+1)/2 + ...
+    (er-1)/2*(1 + 12*h/W)^(-0.5);
+
+% Effective length
+Leff = c/(2*f0*sqrt(eeff));     % er instead of eeff
+
+% Fringing extension
+dL = 0.412*h * ...
+    ((eeff+0.3)*(W/h+0.264)) / ...
+    ((eeff-0.258)*(W/h+0.8));
+
+% Physical patch length
+L = Leff - 2*dL;
+
+fprintf('W = %.2f mm\n', W*1e3);
+fprintf('L = %.2f mm\n', L*1e3);
+fprintf('eeff = %.3f\n', eeff);
+fprintf('dL = %.2f mm\n', dL*1e3);
+
+
+%% Properties
+N = 17;
+dspacing = 0.8;
+d = (0:N-1)*dspacing;
+
+dtheta = 0.5;   % fine enough grid for a converged D0
+dphi   = 0.5;
+
+theta_full = 0:dtheta:180;
+phi_full   = 0:dphi:360;
+[THE, PHI] = meshgrid(theta_full, phi_full);
+
+theta_cut = -180:0.5:180;   % for the 2D cartesian cut plot
+planes = [90 0];
+planeNames = {'\phi = 90° (contains array)', '\phi = 0° (perpendicular)'};
+
+
+%%Compute angle based on modulo of student id
+%Arne: 70
+%Marcel: 34
+
+theta0 = mod(34,30);   %scan angle
+
+%% Null-Steering zusätzlich zur Hauptkeulen-Steuerung
+
+theta_null = -mod(70, 30); % Arne's ID, >35 -> mod 30 -> 10
+
+u0 = sind(theta0);           % Hauptkeule (bereits vorhanden: theta0 = mod(34,30))
+u_null = sind(theta_null);
+
+n = 0:N-1;
+d = n*dspacing;
+
+psi_null = 2*pi*dspacing*(u_null - u0);
+z_null = exp(1j*psi_null);
+
+% Natürliche Nullstellen der uniformen Anregung
+k = 1:N-1;
+z_natural = exp(1j*2*pi*k/N);
+
+% Die dem gewünschten Null am nächsten liegende natürliche Nullstelle ersetzen
+[~, k0] = min(abs(z_natural - z_null));
+z_natural(k0) = z_null;
+
+% Amplitudentaper aus den (modifizierten) Nullstellen rekonstruieren
+p_new = poly(z_natural);      % absteigende Potenzen
+A = fliplr(p_new);            % A(n+1) = Amplitude von Element n
+
+% Finale Anregung: Taper + Steuerphase
+I = A .* exp(-1j*2*pi*d*u0);
+
+AF_full = ArrayFactor(d, I, THE, PHI);
+AF_null = ArrayFactor(d, I, theta_null, 90);
+AF_null_dB = 10*log10(abs(AF_null)^2/max(abs(AF_full(:)).^2) + eps);
+[D0, D0_dB] = Directivity(AF_full, theta_full, phi_full);
+
+fprintf('D0 = %.2f dBi (Ziel: >= 19)\n', D0_dB)
+fprintf('Pegel bei theta_null = %d°: %.2f dB relativ zum Peak (Ziel: <= -30)\n', theta_null, AF_null_dB)%% Directivity pattern
+
+%% Visualisierung des Amplitudentapers
+A_norm = abs(A) / max(abs(A));            % normierter Taper (max = 1)
+phase_total = unwrap(angle(I));           % Gesamtphase pro Element (Taper + Steuerung)
+phase_steer = -2*pi*d*u0;                 % reine Steuerphase zum Vergleich
+
+figure('Name', 'Amplitudentaper und Phasenbelegung')
+
+subplot(3,1,1)
+stem(n, ones(1,N), 'Color', [0.6 0.6 0.6], 'DisplayName', 'uniform (Referenz)'); hold on
+stem(n, A_norm, 'filled', 'LineWidth', 1.2, 'DisplayName', '|A_n| Null-Steering')
+xlabel('Element n'); ylabel('|A_n| (norm.)')
+title(sprintf('Amplitudentaper, N = %d, \\theta_{null} = %d°', N, theta_null))
+ylim([0 1.1]); legend show; grid on
+
+subplot(3,1,2)
+plot(n, rad2deg(angle(A)), 'o-', 'LineWidth', 1.2)
+xlabel('Element n'); ylabel('arg(A_n) (deg)')
+title('Phasenanteil des Tapers (Null-Korrektur)')
+grid on
+
+subplot(3,1,3)
+plot(n, rad2deg(phase_total), 'o-', 'LineWidth', 1.2, 'DisplayName', 'arg(I_n) gesamt'); hold on
+plot(n, rad2deg(phase_steer), 's--', 'LineWidth', 1.2, 'DisplayName', 'nur Steuerphase')
+xlabel('Element n'); ylabel('Phase (deg)')
+title('Gesamtphase der Anregung')
+legend show; grid on
+
+%% Calculate ArrayFactor and Fields
+
+AF    = ArrayFactor(d, I, THE, PHI);
+E_el  = PatchElement(THE, PHI, L, W, f0);
+E_tot = E_el .* AF;
+
+[D0, D0_dB] = Directivity(E_tot, theta_full, phi_full);
+
+%% Directivity-Pattern des Patch-Arrays (E- und H-Ebene), theta in [-90, 90]
+theta_cut = -90:0.1:90;
+planes     = [0 90];
+planeNames = {'E-Ebene (\phi = 0°)', 'H-Ebene (\phi = 90°, enthält Array)'};
+
+% gleiche Referenz wie bei D0: Peak des Gesamtmusters über die ganze Kugel
+Umax_full = max(abs(E_tot(:)).^2);
+
+figure('Name', 'Patch-Array Directivity')
+hold on
+for p = 1:2
+    phi_line = planes(p)*ones(size(theta_cut));
+
+    E_cut = PatchElement(theta_cut, phi_line, L, W, f0) ...
+        .* ArrayFactor(d, I, theta_cut, phi_line);
+
+    U_norm = abs(E_cut).^2 / Umax_full;
+    D_dB   = 10*log10(D0*U_norm + eps);
+
+    plot(theta_cut, D_dB, 'LineWidth', 1.3, 'DisplayName', planeNames{p})
+end
+
+yline(D0_dB, '--k', sprintf('D_0 = %.2f dBi', D0_dB), 'HandleVisibility', 'off')
+if exist('theta_null', 'var')
+    xline(theta_null, '--m', sprintf('\\theta_{null} = %d°', theta_null), 'HandleVisibility', 'off')
+end
+
+xlabel('\theta (deg)'); ylabel('D(\theta,\phi) (dBi)')
+title(sprintf('Patch-Array: N = %d, d = %.2f\\lambda, \\theta_0 = %d°, D_0 = %.2f dBi', ...
+    N, dspacing, theta0, D0_dB))
+xlim([-90 90]); ylim([D0_dB-60 D0_dB+3])
+legend('Location', 'southwest'); grid on
+
+
+
+%% 3D-Directivity-Pattern des Patch-Arrays
+% Voraussetzung: THE, PHI, E_tot, D0, D0_dB aus dem vorherigen Block
+
+skip = 2;                                   % Gitter für den Plot ausdünnen (Speed)
+TH = THE(1:skip:end, 1:skip:end);
+PH = PHI(1:skip:end, 1:skip:end);
+Et = E_tot(1:skip:end, 1:skip:end);
+
+% Directivity in dBi, gleiche Referenz wie bei D0
+U_norm = abs(Et).^2 / max(abs(E_tot(:)).^2);
+D_dB   = 10*log10(D0*U_norm + eps);
+
+% Radius: dBi mit Dynamikbegrenzung (30 dB unter Peak), sonst wird die Keule winzig
+dyn   = 30;
+D_dB_clip = max(D_dB, D0_dB - dyn);
+R = D_dB_clip - (D0_dB - dyn);              % 0 ... dyn
+
+X = R .* sind(TH) .* cosd(PH);
+Y = R .* sind(TH) .* sind(PH);
+Z = R .* cosd(TH);
+
+figure('Name', '3D Directivity Pattern')
+surf(X, Y, Z, D_dB_clip, 'EdgeColor', 'none', 'FaceAlpha', 0.95)
+axis equal; grid on
+xlabel('x'); ylabel('y (Array-Achse)'); zlabel('z (Broadside)')
+cb = colorbar; cb.Label.String = 'D (dBi)';
+clim([D0_dB - dyn, D0_dB])
+colormap turbo
+camlight headlight; lighting gouraud
+view(135, 25)
+title(sprintf('N = %d, d = %.2f\\lambda, \\theta_0 = %d°, D_0 = %.2f dBi', ...
+    N, dspacing, theta0, D0_dB))
+
+
+%% 2D-Strahlungsdiagramme in den drei Hauptebenen (Polar, dBi)
+% Voraussetzung: E_tot, D0, D0_dB, d, I, L, W, f0 aus dem vorherigen Block
+
+Umax_full = max(abs(E_tot(:)).^2);   % gleiche Referenz wie bei D0
+dyn = 40;                            % Dynamikbereich in dB unter D0
+rmin = D0_dB - dyn;
+
+Dfun = @(the, phi) max(10*log10(D0 * abs( ...
+    PatchElement(the, phi, L, W, f0) .* ArrayFactor(d, I, the, phi) ...
+    ).^2 / Umax_full + eps), rmin);
+
+ang = -180:0.1:180;   % Winkel in Grad
+
+figure('Name', '2D-Hauptebenen', 'Position', [100 100 1300 420])
+
+% --- xz-Ebene (phi = 0), Winkel theta von der z-Achse ---
+subplot(1,3,1)
+polarplot(deg2rad(ang), Dfun(ang, zeros(size(ang))), 'LineWidth', 1.3)
+title('xz-Ebene (\phi = 0°, E-Ebene)')
+ax = gca; ax.ThetaZeroLocation = 'top'; ax.ThetaDir = 'clockwise';
+rlim([rmin D0_dB+3])
+
+% --- yz-Ebene (phi = 90), enthält die Array-Achse ---
+subplot(1,3,2)
+polarplot(deg2rad(ang), Dfun(ang, 90*ones(size(ang))), 'LineWidth', 1.3)
+title('yz-Ebene (\phi = 90°, H-Ebene, Array-Achse)')
+ax = gca; ax.ThetaZeroLocation = 'top'; ax.ThetaDir = 'clockwise';
+rlim([rmin D0_dB+3])
+
+% --- xy-Ebene (theta = 90), Winkel phi von der x-Achse ---
+phi_xy = 0:0.1:360;
+subplot(1,3,3)
+polarplot(deg2rad(phi_xy), Dfun(90*ones(size(phi_xy)), phi_xy), 'LineWidth', 1.3)
+title('xy-Ebene (\theta = 90°)')
+rlim([rmin D0_dB+3])
+
+sgtitle(sprintf('Patch-Array: N = %d, d = %.2f\\lambda, \\theta_0 = %d°, D_0 = %.2f dBi', ...
+    N, dspacing, theta0, D0_dB))

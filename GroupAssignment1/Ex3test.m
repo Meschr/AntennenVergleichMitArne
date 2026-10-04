@@ -9,7 +9,7 @@ h  = 1.5e-3;    % substrate height
 %% Patch dimensions (Exercise 1)
 W    = c/(2*f0)*sqrt(2/(er+1));
 eeff = (er+1)/2 + (er-1)/2*(1 + 12*h/W)^(-0.5);
-Leff = c/(2*f0*sqrt(er));            % note: Balanis uses eeff here
+Leff = c/(2*f0*sqrt(eeff));            % note: Balanis uses eeff here
 dL   = 0.412*h * ((eeff+0.3)*(W/h+0.264)) / ((eeff-0.258)*(W/h+0.8));
 L    = Leff - 2*dL;
 
@@ -28,6 +28,7 @@ phi_full   = 0:dphi:360-dphi;        % 360 excluded, otherwise phi = 0 is counte
 
 %% Angles from the student IDs (Marcel: 34, Arne: 70)
 theta0     = mod(34,30);             % main beam direction
+% theta0 = 30;
 theta_null = -mod(70,30);            % null direction: -10 deg
 
 %% Excitation: steering + null placement (Schelkunoff)
