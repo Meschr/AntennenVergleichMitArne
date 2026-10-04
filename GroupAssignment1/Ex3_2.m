@@ -36,7 +36,7 @@ fprintf('dL = %.2f mm\n', dL*1e3);
 
 
 %% Properties
-N = 20;
+N = 17;
 dspacing = 0.8;
 d = (0:N-1)*dspacing;
 
@@ -195,4 +195,44 @@ colormap turbo
 camlight headlight; lighting gouraud
 view(135, 25)
 title(sprintf('N = %d, d = %.2f\\lambda, \\theta_0 = %d°, D_0 = %.2f dBi', ...
+    N, dspacing, theta0, D0_dB))
+
+
+%% 2D-Strahlungsdiagramme in den drei Hauptebenen (Polar, dBi)
+% Voraussetzung: E_tot, D0, D0_dB, d, I, L, W, f0 aus dem vorherigen Block
+
+Umax_full = max(abs(E_tot(:)).^2);   % gleiche Referenz wie bei D0
+dyn = 40;                            % Dynamikbereich in dB unter D0
+rmin = D0_dB - dyn;
+
+Dfun = @(the, phi) max(10*log10(D0 * abs( ...
+    PatchElement(the, phi, L, W, f0) .* ArrayFactor(d, I, the, phi) ...
+    ).^2 / Umax_full + eps), rmin);
+
+ang = -180:0.1:180;   % Winkel in Grad
+
+figure('Name', '2D-Hauptebenen', 'Position', [100 100 1300 420])
+
+% --- xz-Ebene (phi = 0), Winkel theta von der z-Achse ---
+subplot(1,3,1)
+polarplot(deg2rad(ang), Dfun(ang, zeros(size(ang))), 'LineWidth', 1.3)
+title('xz-Ebene (\phi = 0°, E-Ebene)')
+ax = gca; ax.ThetaZeroLocation = 'top'; ax.ThetaDir = 'clockwise';
+rlim([rmin D0_dB+3])
+
+% --- yz-Ebene (phi = 90), enthält die Array-Achse ---
+subplot(1,3,2)
+polarplot(deg2rad(ang), Dfun(ang, 90*ones(size(ang))), 'LineWidth', 1.3)
+title('yz-Ebene (\phi = 90°, H-Ebene, Array-Achse)')
+ax = gca; ax.ThetaZeroLocation = 'top'; ax.ThetaDir = 'clockwise';
+rlim([rmin D0_dB+3])
+
+% --- xy-Ebene (theta = 90), Winkel phi von der x-Achse ---
+phi_xy = 0:0.1:360;
+subplot(1,3,3)
+polarplot(deg2rad(phi_xy), Dfun(90*ones(size(phi_xy)), phi_xy), 'LineWidth', 1.3)
+title('xy-Ebene (\theta = 90°)')
+rlim([rmin D0_dB+3])
+
+sgtitle(sprintf('Patch-Array: N = %d, d = %.2f\\lambda, \\theta_0 = %d°, D_0 = %.2f dBi', ...
     N, dspacing, theta0, D0_dB))
