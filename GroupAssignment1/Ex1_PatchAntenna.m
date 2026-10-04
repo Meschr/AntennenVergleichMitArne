@@ -109,3 +109,56 @@ title('H-plane radiation pattern, \phi = 90°');
 legend('E_\theta','E_\phi');
 xlim([-90 90]);
 ylim([-40 0]);
+
+%% Directivity calculation
+
+% Angular grid over the complete sphere
+theta_D = 0:0.1:180;       % [deg]
+phi_D   = 0:0.1:360;       % [deg]
+
+[PHI_D, THETA_D] = meshgrid(deg2rad(phi_D), deg2rad(theta_D));
+
+% Patch radiation function
+xL = (k0*L/2) .* sin(THETA_D) .* cos(PHI_D);
+xW = (k0*W/2) .* sin(THETA_D) .* sin(PHI_D);
+
+% sinc(x) = sin(x)/x
+f_D = ones(size(xW));
+idx = abs(xW) > 1e-12;
+f_D(idx) = sin(xW(idx))./xW(idx);
+
+% Set radiation to zero in the lower hemisphere
+upper = THETA_D <= pi/2;
+
+f_D(~upper) = 0;
+
+% Electric field components
+Etheta_D = f_D .* cos(PHI_D) .* cos(xL);
+Ephi_D   = -f_D .* cos(THETA_D) .* sin(PHI_D);
+
+% Electric field magnitude squared
+E2_D = abs(Etheta_D).^2 + abs(Ephi_D).^2;
+
+% Radiation intensity (constant factors cancel in directivity)
+U_D = E2_D;
+
+% Maximum radiation intensity
+Umax = max(U_D(:));
+
+% Numerical integration of radiated power
+dtheta = deg2rad(mean(diff(theta_D)));
+dphi   = deg2rad(mean(diff(phi_D)));
+
+Prad = sum(sum(U_D .* sin(THETA_D))) * dtheta * dphi;
+
+% Directivity in boresight direction
+% Boresight: theta = 0 deg
+U_boresight = 1;
+
+D_boresight = 4*pi*U_boresight/Prad;
+D_boresight_dBi = 10*log10(D_boresight);
+
+fprintf('\nDirectivity results:\n');
+fprintf('Prad (normalized)       = %.6f\n', Prad);
+fprintf('Boresight directivity   = %.4f\n', D_boresight);
+fprintf('Boresight directivity   = %.2f dBi\n', D_boresight_dBi);
