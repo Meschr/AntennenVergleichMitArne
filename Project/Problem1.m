@@ -20,6 +20,9 @@ H(2).w  = 8.4e-3;
 H(2).L  = 240e-3;                           % axial horn length p_e = p_h (Lh in task)
 H(2).f  = [3.95 5.0 5.85]*1e9;                 % placeholder: use measured freqs
 
+th = linspace(-pi, pi, 1441);                % signed theta -> cut from -180..180 deg
+
+
 % Inner aperture dimensions (needed by the aperture-field model)
 for n = 1:numel(H)
     H(n).a1 = H(n).Ah - 2*H(n).w;
@@ -42,7 +45,10 @@ for n = 1:numel(H)
     figure('Name',h.name,'Position',[100 100 1400 400]);
     for m = 1:numel(h.f)
         f  = h.f(m);
-        D0 = directivity(f,h.a1,h.b1,rho1,rho2,c0);
+        D0    = directivityBalanis(f,h.a1,h.b1,rho1,rho2,c0);   % theory (Balanis)
+        D0num = directivityNum(f,h.a1,h.b1,rho1,rho2,c0);       % check numerical
+        fprintf('%s %.2f GHz: D0 = %.2f dBi (Balanis), %.2f dBi (numerical)\n', ...
+        h.name,f/1e9,D0,D0num);
 
         % H-plane (phi = 0):  co-pol = E_phi
         [~,Eph_H] = pyrField(th,0*th,      f,h.a1,h.b1,rho1,rho2,c0);
@@ -122,7 +128,22 @@ end
 % %     F = (C(t2)-C(t1)) - 1j*(S(t2)-S(t1));
 % % end
 
-function D0 = directivity(f,a1,b1,rho1,rho2,c0)
+function D0 = directivityBalanis(f,a1,b1,rho1,rho2,c0)
+    % Pyramidal horn directivity, Balanis Eq. for D_p (Fresnel form), result in dBi
+    lam = c0/f;
+    u = (sqrt(lam*rho2)/a1 + a1/sqrt(lam*rho2))/sqrt(2);
+    v = (sqrt(lam*rho2)/a1 - a1/sqrt(lam*rho2))/sqrt(2);
+    w = b1/sqrt(2*lam*rho1);
+
+    Cu = fresnelc(u);  Su = fresnels(u);
+    Cv = fresnelc(v);  Sv = fresnels(v);
+    Cw = fresnelc(w);  Sw = fresnels(w);
+
+    Dp = 8*pi*rho1*rho2/(a1*b1) * ((Cu-Cv)^2 + (Su-Sv)^2) * (Cw^2 + Sw^2);
+    D0 = 10*log10(Dp);
+end
+
+function D0 = directivityNum(f,a1,b1,rho1,rho2,c0)
     % Numerical directivity: D0 = 4*pi*Umax/Prad
     t = linspace(0,pi,181);  p = linspace(0,2*pi,181);
     [T,P] = meshgrid(t,p);
