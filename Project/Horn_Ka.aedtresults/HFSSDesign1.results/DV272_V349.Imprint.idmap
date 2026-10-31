@@ -1,0 +1,14 @@
+$begin 'imprintInfo'
+	FileVersion='2026R1'
+	$begin 'imprintIDMap'
+	$end 'imprintIDMap'
+	$begin 'PartsInfo'
+		Part(143, 'Rectangle1', -1, 1, 153)
+		Part(219, 'big_Horn', -1, 19, 205, 252, 253, 254, 255, 410, 411, 412, 413, 157, 158, 161, 160, 159, 118, 119, 120, 121, 156)
+		Part(444, 'Airbox', -1, 6, 445, 447, 448, 449, 446, 450)
+	$end 'PartsInfo'
+	$begin 'PartAddtionalPiecesInfo'
+	$end 'PartAddtionalPiecesInfo'
+	$begin 'faceImprintInfo'
+	$end 'faceImprintInfo'
+$end 'imprintInfo'

@@ -1,0 +1,12 @@
+$begin 'ValidationCache'
+	$begin 'OneValidationResult'
+		Variation='$a=\'7.1120000000000001mm\' $A_h=\'68.5mm\' $b=\'3.556mm\' $B_h=\'56.5mm\' $l=\'31.5mm\' $L_h=\'150mm\' $lambda_1=\'11.279999999999999mm\' $lambda_2=\'7.4749999999999996mm\' $w=\'1mm\''
+		Status=true
+		FileName='VI3238279100179320439866.tmp'
+	$end 'OneValidationResult'
+	$begin 'OneValidationResult'
+		Variation='$a=\'7.1120000000000001mm\' $A_h=\'68.5mm\' $b=\'3.556mm\' $B_h=\'56.5mm\' $l=\'31.5mm\' $L_h=\'150mm\' $lambda_1=\'11.31mm\' $lambda_2=\'7.4749999999999996mm\' $w=\'1mm\''
+		Status=true
+		FileName='VI6F852464017934399943.tmp'
+	$end 'OneValidationResult'
+$end 'ValidationCache'

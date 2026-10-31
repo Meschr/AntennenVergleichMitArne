@@ -1,29 +1,13 @@
-function AF = ArrayFactor(d, N, the, phi, scan_angle)
-%ARRAYFACTOR Compute the far-field array factor of a uniform linear array.
-%
-%   AF = ArrayFactor(d, N, the, phi, scan_angle) returns the array factor
-%   for an N-element array arranged uniformly along the x-axis.
-%
-%   Inputs:
-%       d           - Element spacing as a fraction of the wavelength
-%       N           - Number of array elements
-%       the         - Polar angle values theta in degrees
-%       phi         - Azimuth angle values phi in degrees
-%       scan_angle  - Scan angle of the main beam in degrees
-%
-%   Output:
-%       AF          - Array factor evaluated over the requested angles
-%
-%   TODO: Implement the core array-factor computation.
+function AF = ArrayFactor(d, N, THE, PHI, scan_angle)
+    % THE, PHI from meshgrid (degrees)
+    the = deg2rad(THE);           % convert matrix to radians
+    beta = 0;
+    k = 2*pi;
+    psi = beta + k * d .* cos(the);   % same size as THE
 
-AF = zeros(size(the)); % Initialize the array factor array
+    n = (1:(N)).';             % N×1
+    psi_vec = psi(:).';          % 1×M where M = numel(THE)
 
-the = deg2rad(the);
-beta = 0;
-k = (2*pi);
-psi = beta + k*d* cos(the); 
-
-n = 1:N;
-AF = (1/10)*sum(exp(1i.*((n-1)'.*psi)));
-
+    AF_vec = (1/N) * sum(exp(1i * ((n-1) * psi_vec)), 1);  % 1×M
+    AF = reshape(AF_vec, size(THE));                   % back to THE size
 end

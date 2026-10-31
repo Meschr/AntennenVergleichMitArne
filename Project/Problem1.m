@@ -1,0 +1,149 @@
+%% Pyramidal horn far-field, Balanis Eqs. (13-44)-(13-46)
+% Ka-band and C-band standard gain horns (theory)
+% Requires Symbolic Math Toolbox (fresnelc, fresnels)
+clear; close all; clc;
+c0 = 299792458;
+
+
+%% ---- Geometry [m] and frequencies [Hz] ----------------------------------
+H(1).name = 'Ka-band';
+H(1).a  = 7.112e-3;  H(1).b  = 3.556e-3;     % waveguide (inner)
+H(1).Ah = 68.5e-3;   H(1).Bh = 56.5e-3;      % aperture, OUTER dimensions
+H(1).w  = 1e-3;                              % wall thickness
+H(1).L  = 150e-3;                            % axial horn length p_e = p_h (Lh in task)
+H(1).f  = [26.5 33 40]*1e9;                    % placeholder: use measured freqs
+
+H(2).name = 'C-band';
+H(2).a  = 47.55e-3;  H(2).b  = 22.2e-3;
+H(2).Ah = 216e-3;    H(2).Bh = 160e-3;
+H(2).w  = 8.4e-3;
+H(2).L  = 240e-3;                           % axial horn length p_e = p_h (Lh in task)
+H(2).f  = [3.95 5.0 5.85]*1e9;                 % placeholder: use measured freqs
+
+% Inner aperture dimensions (needed by the aperture-field model)
+for n = 1:numel(H)
+    H(n).a1 = H(n).Ah - 2*H(n).w;
+    H(n).b1 = H(n).Bh - 2*H(n).w;
+end
+
+
+%% ---- Main loop -----------------------------------------------------------
+for n = 1:numel(H)
+    h = H(n);
+
+    % Axial apex-to-aperture distances (similar triangles), Lh = p_e = p_h
+    rho1 = h.L * h.b1/(h.b1 - h.b);          % E-plane  (b direction)
+    rho2 = h.L * h.a1/(h.a1 - h.a);          % H-plane  (a direction)
+    
+    % Slant lengths (wall length apex-to-aperture edge), only for checking
+    rho_e = sqrt(rho1^2 + h.b1^2/4);
+    rho_h = sqrt(rho2^2 + h.a1^2/4);
+
+    figure('Name',h.name,'Position',[100 100 1400 400]);
+    for m = 1:numel(h.f)
+        f  = h.f(m);
+        D0 = directivity(f,h.a1,h.b1,rho1,rho2,c0);
+
+        % H-plane (phi = 0):  co-pol = E_phi
+        [~,Eph_H] = pyrField(th,0*th,      f,h.a1,h.b1,rho1,rho2,c0);
+        % E-plane (phi = 90): co-pol = E_theta
+        [Eth_E,~] = pyrField(th,pi/2+0*th, f,h.a1,h.b1,rho1,rho2,c0);
+
+        U_H = abs(Eph_H).^2;
+        U_E = abs(Eth_E).^2;
+        D_H = D0 + 10*log10(U_H/max(U_H));   % absolute pattern in dBi
+        D_E = D0 + 10*log10(U_E/max(U_E));
+
+        subplot(1,numel(h.f),m); hold on; grid on;
+        plot(rad2deg(th),D_E,'b','LineWidth',1.2);
+        plot(rad2deg(th),D_H,'r','LineWidth',1.2);
+        xlim([-180 180]); ylim([D0-60 D0+3]);
+        xlabel('\theta [deg]'); ylabel('D [dBi]');
+        title(sprintf('%s, %.2f GHz, D_0 = %.2f dBi',h.name,f/1e9,D0));
+        legend('E-plane','H-plane','Location','south');
+
+        fprintf(['%s %.2f GHz: D0 = %.2f dBi | HPBW_E = %.1f deg, HPBW_H = %.1f deg ' ...
+                 '| SLL_E = %.1f dB, SLL_H = %.1f dB\n'], ...
+                 h.name,f/1e9,D0,hpbw(th,D_E),hpbw(th,D_H),sll(D_E),sll(D_H));
+    end
+end
+
+%% ======================= Local functions ==================================
+function [Eth,Eph] = pyrField(th,ph,f,a1,b1,rho1,rho2,c0)
+    % Far-field of pyramidal horn, Balanis (13-46b,c), E0 = 1, e^{-jkr}/r omitted
+    k   = 2*pi*f/c0;
+    kx1 = k*sin(th).*cos(ph) + pi/a1;        % k'_x   (13-25c)
+    kx2 = k*sin(th).*cos(ph) - pi/a1;        % k''_x  (13-26c)
+    ky  = k*sin(th).*sin(ph);                % k_y    (13-5a)
+
+    % I1, Eq. (13-44)
+    s2   = sqrt(1/(pi*k*rho2));
+    t1p  = s2*(-k*a1/2 - kx1*rho2);         % (13-25a)
+    t2p  = s2*(+k*a1/2 - kx1*rho2);         % (13-25b)
+    t1pp = s2*(-k*a1/2 - kx2*rho2);         % (13-26a)
+    t2pp = s2*(+k*a1/2 - kx2*rho2);         % (13-26b)
+
+    f1 = (kx1^2*rho2) / (2*k);              % (13-27b)
+    f2 = (kx2^2*rho2) / (2*k);              % (13-27c)
+
+    Y = (k*b)/2 * sin(th)*sin(ph);          % (13-27d)
+
+
+    I1 = 0.5*sqrt(pi*rho2/k) .* ( exp(1j*kx1.^2*rho2/(2*k)).*Ffun(t1p,t2p) ...
+                                + exp(1j*kx2.^2*rho2/(2*k)).*Ffun(t1pp,t2pp) );
+
+    % I2, Eq. (13-45)
+    s1 = sqrt(1/(pi*k*rho1));
+    t1 = s1*(-k*b1/2 - ky*rho1);   
+    t2 = s1*(+k*b1/2 - ky*rho1);
+    I2 = sqrt(pi*rho1/k) .* exp(1j*ky.^2*rho1/(2*k)) .* Ffun(t1,t2);
+
+    % Eqs. (13-46b,c)
+    pre = 1j*k/(4*pi);
+    Eth = pre * sin(ph).*(1+cos(th)).*I1.*I2;
+    Eph = pre * cos(ph).*(cos(th)+1).*I1.*I2;
+end
+
+function F = Ffun(t1,t2)
+    % F(t1,t2) = [C(t2)-C(t1)] - j[S(t2)-S(t1)], Eq. (13-27a)
+    F = (fresnelc(t2)-fresnelc(t1)) - 1j*(fresnels(t2)-fresnels(t1));
+end
+
+% % function F = Ffun(t1,t2)
+% %     % Fresnel integral difference, Balanis Eq. (13-27a)
+% %     % Independent of the Symbolic Math Toolbox
+% % 
+% %     C = @(x) arrayfun(@(z) integral( ...
+% %         @(t) cos(pi*t.^2/2), 0, z), x);
+% % 
+% %     S = @(x) arrayfun(@(z) integral( ...
+% %         @(t) sin(pi*t.^2/2), 0, z), x);
+% % 
+% %     F = (C(t2)-C(t1)) - 1j*(S(t2)-S(t1));
+% % end
+
+function D0 = directivity(f,a1,b1,rho1,rho2,c0)
+    % Numerical directivity: D0 = 4*pi*Umax/Prad
+    t = linspace(0,pi,181);  p = linspace(0,2*pi,181);
+    [T,P] = meshgrid(t,p);
+    [Et,Ep] = pyrField(T,P,f,a1,b1,rho1,rho2,c0);
+    U    = abs(Et).^2 + abs(Ep).^2;
+    Prad = trapz(p,trapz(t,U.*sin(T),2));
+    D0   = 10*log10(4*pi*max(U(:))/Prad);
+end
+
+function w = hpbw(th,Ddb)
+    % Half-power beamwidth [deg] of main lobe
+    [mx,i0] = max(Ddb);  lv = mx - 3;
+    i1 = find(Ddb(1:i0) < lv,1,'last');
+    i2 = i0 - 1 + find(Ddb(i0:end) < lv,1,'first');
+    w  = rad2deg(th(i2) - th(i1));
+end
+
+function s = sll(Ddb)
+    % Highest side lobe relative to main lobe maximum [dB] (right half of cut)
+    [mx,i0] = max(Ddb);
+    d  = Ddb(i0:end);
+    pk = find(d(2:end-1) > d(1:end-2) & d(2:end-1) >= d(3:end)) + 1;
+    s  = max(d(pk)) - mx;
+end
