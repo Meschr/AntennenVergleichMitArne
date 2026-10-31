@@ -83,10 +83,10 @@ function [Eth,Eph] = pyrField(th,ph,f,a1,b1,rho1,rho2,c0)
     t1pp = s2*(-k*a1/2 - kx2*rho2);         % (13-26a)
     t2pp = s2*(+k*a1/2 - kx2*rho2);         % (13-26b)
 
-    f1 = (kx1^2*rho2) / (2*k);              % (13-27b)
-    f2 = (kx2^2*rho2) / (2*k);              % (13-27c)
-
-    Y = (k*b)/2 * sin(th)*sin(ph);          % (13-27d)
+    % f1 = (kx1^2*rho2) / (2*k);              % (13-27b)
+    % f2 = (kx2^2*rho2) / (2*k);              % (13-27c)
+    % 
+    % Y = (k*b)/2 * sin(th)*sin(ph);          % (13-27d)
 
 
     I1 = 0.5*sqrt(pi*rho2/k) .* ( exp(1j*kx1.^2*rho2/(2*k)).*Ffun(t1p,t2p) ...
