@@ -83,7 +83,7 @@ end
 
 %saving
 if ~exist('Theory_Results','dir'), mkdir('Theory_Results'); end
-save(fullfile('results','theory_horns.mat'),'T');
+save(fullfile('Theory_Results','theory_horns.mat'),'T');
 
 %% ======================= Local functions ==================================
 function [Eth,Eph] = pyrField(th,ph,f,a1,b1,rho1,rho2,c0)
