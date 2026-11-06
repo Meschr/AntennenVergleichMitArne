@@ -8,7 +8,7 @@ clear; close all; clc;
 %% ---- Configuration -------------------------------------------------------
 cfg.theoryFile    = fullfile('Theory_Results','theory_horns.mat');
 cfg.outDir        = 'plotresults';
-cfg.formats       = {'png','pdf'};   % add 'fig' to also save MATLAB .fig files
+cfg.formats       = {'png','pdf'};   % add 'fig' to also save MATLAB .fi g files
 cfg.fTolGHz       = 0.05;            % max mismatch when pairing frequencies
 cfg.phiH          = 0;               % H-plane cut in HFSS/measurement [deg]
 cfg.phiE          = 90;              % E-plane cut [deg]
