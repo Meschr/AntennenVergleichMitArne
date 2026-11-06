@@ -1,7 +1,7 @@
 %% Standard gain horns: theory (Balanis) vs HFSS vs measurement
-% Reads:  results/theory_horns.mat   (struct T, saved by the theory script)
-%         HFSS 2D directivity CSV per horn
-%         measured cuts (optional; for now same CSV layout as HFSS)
+% Reads:  Theory_Results/theory_horns.mat   (struct T, saved by the theory script)
+%         Simulation_Results/Directivity_<band>_2D_*.csv  (one CSV per frequency is fine)
+%         Measurement_Results/...  (optional; for now same CSV layout as HFSS)
 % Writes: pattern plots, D0-vs-frequency plots and metric tables to plotresults/
 clear; close all; clc;
 
@@ -16,12 +16,13 @@ cfg.dynRange      = 60;              % plotted dynamic range [dB]
 cfg.measAlignPeak = false;           % true: shift measured cut so its peak = theory D0
                                      % (use if the lab data is relative, not absolute)
 
-% One entry per horn; name must match T(n).name in the .mat file
+% One entry per horn; name must match T(n).name in the .mat file.
+% hfss/meas accept a single file or a wildcard pattern (files are concatenated).
 src(1).name = 'Ka-band';
-src(1).hfss = fullfile('hfss','Ka_band_Directivity_2D.csv');
-src(1).meas = '';                    % fill in after the lab
+src(1).hfss = fullfile('Simulation_Results','Directivity_Ka_2D_*.csv');
+src(1).meas = '';                    % e.g. fullfile('Measurement_Results','Ka_*.csv')
 src(2).name = 'C-band';
-src(2).hfss = fullfile('hfss','C_band_Directivity_2D.csv');
+src(2).hfss = fullfile('Simulation_Results','Directivity_C_2D_*.csv');
 src(2).meas = '';
 
 %% ---- Load theory ---------------------------------------------------------
@@ -105,13 +106,33 @@ for n = 1:numel(src)
 end
 
 %% ======================= Local functions ==================================
-function S = readCuts(file)
+function S = readCuts(spec)
+    % Reads one file or all files matching a wildcard pattern and concatenates them.
+    S = [];
+    if isempty(spec), return; end
+    d = dir(spec);
+    d = d(~[d.isdir]);
+    if isempty(d), warning('No files found for: %s', spec); return; end
+    for k = 1:numel(d)
+        Sk = readCutFile(fullfile(d(k).folder, d(k).name));
+        if isempty(S)
+            S = Sk;
+        else
+            if ~isequal(S.qnames, Sk.qnames)
+                error('%s: columns differ from the other files in %s', d(k).name, spec);
+            end
+            S.f = [S.f; Sk.f];  S.phi = [S.phi; Sk.phi];
+            S.theta = [S.theta; Sk.theta];  S.Q = [S.Q; Sk.Q];
+        end
+    end
+    fprintf('Loaded %d file(s) for %s: f = %s GHz\n', numel(d), spec, ...
+            mat2str(unique(S.f).'));
+end
+
+function S = readCutFile(file)
     % Generic reader for HFSS-style cut exports:
     % columns Freq, Phi, Theta, then one or more dB quantities
     % (e.g. dB(DirTotal), later co/cross-pol columns are picked up automatically).
-    S = [];
-    if isempty(file), return; end
-    if ~isfile(file), warning('File not found: %s', file); return; end
     tbl = readtable(file,'VariableNamingRule','preserve');
     vn  = tbl.Properties.VariableNames;
     iF  = find(startsWith(vn,'Freq', 'IgnoreCase',true),1);
@@ -142,7 +163,7 @@ function S = loadMeasurement(file)
     [~,~,ext] = fileparts(file);
     switch lower(ext)
         case '.csv'
-            S = readCuts(file);      % works if the data is put in HFSS-like layout
+            S = readCuts(file);      % works if the data is put in HFSS-like layout (wildcards OK)
         otherwise
             error('loadMeasurement: no reader for "%s" files yet', ext);
     end
