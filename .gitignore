@@ -1,0 +1,75 @@
+# ==========================================
+# MATLAB
+# ==========================================
+
+# MATLAB autosave and backup files
+*.asv
+*.m~
+*.autosave
+
+# MATLAB cache and preferences
+slprj/
+*.slxc
+codegen/
+mccExcludedFiles.log
+
+# MATLAB generated figures and data (optional)
+# Uncomment if you do not want to track these:
+# *.fig
+# *.mat
+
+# MATLAB temporary files
+*.mex*
+*.p
+*.mexw64
+
+# MATLAB editor and workspace files
+*.prj
+*.mlappinstall
+
+# ==========================================
+# ANSYS ELECTRONICS DESKTOP / HFSS
+# ==========================================
+
+# HFSS simulation results
+*.aedtresults/
+*.results/
+
+# Temporary and lock files
+*.lock
+*.lck
+*.tmp
+*.autosave
+*.auto
+
+# Backup files
+*.bak
+*.old
+
+# Log files
+*.log
+*.log.*
+
+# Generated solution and simulation data
+*.asol
+*.prof
+*.batchinfo
+
+# ==========================================
+# GENERAL
+# ==========================================
+
+# Operating system files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE files
+.vscode/
+.idea/
+
+# Temporary files
+*.temp
+*.swp
+*.swo
+*~

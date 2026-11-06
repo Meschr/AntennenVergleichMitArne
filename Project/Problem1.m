@@ -11,14 +11,14 @@ H(1).a  = 7.112e-3;  H(1).b  = 3.556e-3;     % waveguide (inner)
 H(1).Ah = 68.5e-3;   H(1).Bh = 56.5e-3;      % aperture, OUTER dimensions
 H(1).w  = 1e-3;                              % wall thickness
 H(1).L  = 150e-3;                            % axial horn length p_e = p_h (Lh in task)
-H(1).f  = [26.5 33 40]*1e9;                    % placeholder: use measured freqs
+H(1).f  = [26.5 33.25 40]*1e9;                    % placeholder: use measured freqs
 
 H(2).name = 'C-band';
 H(2).a  = 47.55e-3;  H(2).b  = 22.2e-3;
 H(2).Ah = 216e-3;    H(2).Bh = 160e-3;
 H(2).w  = 8.4e-3;
 H(2).L  = 240e-3;                           % axial horn length p_e = p_h (Lh in task)
-H(2).f  = [3.95 5.0 5.85]*1e9;                 % placeholder: use measured freqs
+H(2).f  = [3.95 4.9 5.85]*1e9;                 % placeholder: use measured freqs
 
 th = linspace(-pi, pi, 1441);                % signed theta -> cut from -180..180 deg
 

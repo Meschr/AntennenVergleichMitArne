@@ -1,5 +1,5 @@
 $begin 'CacheDataVersion'
-	DataVersion=-1
+	DataVersion=27
 $end 'CacheDataVersion'
 $begin 'VariableValues'
 	$a='7.112mm'
@@ -9,6 +9,6 @@ $begin 'VariableValues'
 	$A_h='68.5mm'
 	$B_h='56.5mm'
 	$L_h='150mm'
-	$lambda_1='11.31mm'
+	$lambda_1='11.28mm'
 	$lambda_2='7.475mm'
 $end 'VariableValues'
