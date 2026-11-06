@@ -60,6 +60,13 @@ for n = 1:numel(H)
         D_H = D0 + 10*log10(U_H/max(U_H));   % absolute pattern in dBi
         D_E = D0 + 10*log10(U_E/max(U_E));
 
+        T(n).name   = h.name;
+        T(n).f      = h.f;
+        T(n).th_deg = rad2deg(th);
+        T(n).DE(m,:) = D_E;
+        T(n).DH(m,:) = D_H;
+        T(n).D0(m)   = D0;
+
         subplot(1,numel(h.f),m); hold on; grid on;
         plot(rad2deg(th),D_E,'b','LineWidth',1.2);
         plot(rad2deg(th),D_H,'r','LineWidth',1.2);
@@ -73,6 +80,10 @@ for n = 1:numel(H)
                  h.name,f/1e9,D0,hpbw(th,D_E),hpbw(th,D_H),sll(D_E),sll(D_H));
     end
 end
+
+%saving
+if ~exist('Theory_Results','dir'), mkdir('Theory_Results'); end
+save(fullfile('results','theory_horns.mat'),'T');
 
 %% ======================= Local functions ==================================
 function [Eth,Eph] = pyrField(th,ph,f,a1,b1,rho1,rho2,c0)
