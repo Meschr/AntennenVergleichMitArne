@@ -35,9 +35,9 @@ cfg.floor   = -60;        % plot floor relative to peak [dB]
 
 % Optional HFSS overlays (same CSV layout as Part 1: Freq, Phi, Theta, dB(...)).
 % Leave the files absent and the plots show theory only.
-cfg.hfss.Q1 = fullfile(baseDir,'Simulation_Results','Array_Q1_uniform.csv');
-cfg.hfss.Q2 = fullfile(baseDir,'Simulation_Results','Array_Q2_chebyshev.csv');
-cfg.hfss.Q3 = fullfile(baseDir,'Simulation_Results','Array_Q3_scan30.csv');
+cfg.hfss.Q1 = fullfile(baseDir,'Simulation_Results','Problem2','Array_Q1_uniform.csv');
+cfg.hfss.Q2 = fullfile(baseDir,'Simulation_Results','Problem2','Array_Q2_chebyshev.csv');
+cfg.hfss.Q3 = fullfile(baseDir,'Simulation_Results','Problem2','Array_Q3_scan30.csv');
 
 if ~exist(cfg.outDir,'dir'), mkdir(cfg.outDir); end
 fprintf('f = %.1f GHz, lambda = %.3f mm, d = %.3f mm, a x b = %.3f x %.3f mm\n', ...

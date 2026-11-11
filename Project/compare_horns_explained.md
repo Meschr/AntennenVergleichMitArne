@@ -102,10 +102,10 @@ Consequences:
 ## 2. What `compare_horns.m` does
 
 ```
- Theory_Results/theory_horns.mat ──┐
- Simulation_Results/*.csv ─────────┼──► per horn ──► per frequency ──► E/H-plane figure  ──► plotresults/*.png|pdf
- Measurement_Results/* (later) ────┘                 └─► metrics rows ──► metrics_<horn>.csv
-                                       └─► D0 vs f figure ──────────────────────────────► plotresults/*_D0_vs_freq.*
+ Theory_Results/theory_horns.mat ────┐
+ Simulation_Results/Problem1/*.csv ──┼──► per horn ──► per frequency ──► E/H-plane figure  ──► plotresults/*.png|pdf
+ Measurement_Results/* (later) ──────┘                 └─► metrics rows ──► metrics_<horn>.csv
+                                         └─► D0 vs f figure ──────────────────────────────► plotresults/*_D0_vs_freq.*
 ```
 
 Three sources describe the same horn in different formats, with different angle grids and sometimes different frequencies:
@@ -143,7 +143,7 @@ The `src` struct array lists the horns:
 
 ```matlab
 src(1).name = 'Ka-band';
-src(1).hfss = fullfile(baseDir,'Simulation_Results','Directivity_Ka_2D_*.csv');
+src(1).hfss = fullfile(baseDir,'Simulation_Results','Problem1','Directivity_Ka_2D_*.csv');
 src(1).meas = '';
 ```
 - `name` must match `T(n).name` exactly, which is how theory and data are linked.
@@ -285,7 +285,7 @@ File naming and export. `exportgraphics` with `'ContentType','vector'` for PDF k
 ## 5. Typical workflow
 
 1. Run the theory script (it writes `Theory_Results/theory_horns.mat`).
-2. Export HFSS cuts per frequency to `Simulation_Results/Directivity_<band>_2D_<f>.csv`, with φ = 0° and 90°, DirTotal first, optionally GainTotal and Ludwig-3 co/cross as extra columns.
+2. Export HFSS cuts per frequency to `Simulation_Results/Problem1/Directivity_<band>_2D_<f>.csv`, with φ = 0° and 90°, DirTotal first, optionally GainTotal and Ludwig-3 co/cross as extra columns.
 3. Run `compare_horns.m`. Check the "Loaded … f = … quantities: …" lines and any warnings.
 4. After the lab: set the measured frequencies in the theory script and HFSS, rerun both, convert the measurements to the CSV layout, set `src(n).meas`, and rerun the comparison.
 

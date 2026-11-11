@@ -1,6 +1,6 @@
 %% Standard gain horns: theory (Balanis) vs HFSS vs measurement
 % Reads:  Theory_Results/theory_horns.mat   (struct T, saved by the theory script)
-%         Simulation_Results/Directivity_<band>_2D_*.csv  (one CSV per frequency is fine)
+%         Simulation_Results/Problem1/Directivity_<band>_2D_*.csv  (one CSV per frequency is fine)
 %         Measurement_Results/...  (optional; for now same CSV layout as HFSS)
 % Writes: pattern plots, D0-vs-frequency plots and metric tables to plotresults/
 clear; close all; clc;
@@ -19,10 +19,10 @@ cfg.measAlignPeak = false;           % true: shift measured cut so its peak = th
 % One entry per horn; name must match T(n).name in the .mat file.
 % hfss/meas accept a single file or a wildcard pattern (files are concatenated).
 src(1).name = 'Ka-band';
-src(1).hfss = fullfile('Simulation_Results','Directivity_Ka_2D_*.csv');
+src(1).hfss = fullfile('Simulation_Results','Problem1','Directivity_Ka_2D_*.csv');
 src(1).meas = '';                    % e.g. fullfile('Measurement_Results','Ka_*.csv')
 src(2).name = 'C-band';
-src(2).hfss = fullfile('Simulation_Results','Directivity_C_2D_*.csv');
+src(2).hfss = fullfile('Simulation_Results','Problem1','Directivity_C_2D_*.csv');
 src(2).meas = '';
 
 %% ---- Load theory ---------------------------------------------------------
