@@ -22,6 +22,11 @@
 - [ ] Experimental measurements durchführen
 - [ ] Messergebnisse auswerten
 - [ ] Messungen mit HFSS- und MATLAB-Ergebnissen vergleichen
+- [ ] Project bridge – Far-field-Check für das Horn an der ETC (LG11)
+  - [ ] Größte Aperturabmessung D und Testfrequenz notieren, λ = c/f
+  - [ ] Fernfeldabstand 2D²/λ berechnen und mit der Messstreckenlänge vergleichen
+  - [ ] Falls Messstrecke < 2D²/λ: Messung liegt im radiating near field → gefüllte Nullstellen, erhöhte Nebenkeulen
+  - [ ] Als möglichen Grund für Abweichungen zwischen Theorie und Messung im Bericht diskutieren (→ Abschnitt 4)
 
 ### 4. Overall Comparison and Discussion
 - [ ] Theoretical results (MATLAB), simulation results (HFSS) and experimental measurements vergleichen
