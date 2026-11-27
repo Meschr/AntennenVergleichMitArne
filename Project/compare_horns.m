@@ -20,7 +20,8 @@ cfg.measAlignPeak = false;           % true: shift measured cut so its peak = th
 % hfss/meas accept a single file or a wildcard pattern (files are concatenated).
 src(1).name = 'Ka-band';
 src(1).hfss = fullfile('Simulation_Results','Problem1','Directivity_Ka_2D_*.csv');
-src(1).meas = '';                    % e.g. fullfile('Measurement_Results','Ka_*.csv')
+src(1).meas = fullfile('Measurement_Results','NSI_SGH_Group2','NSI_SGH_Group2_FF.mat');
+                                     % built by Measurement_Results/NSI_SGH_Group2/prepare_measurement.m
 src(2).name = 'C-band';
 src(2).hfss = fullfile('Simulation_Results','Problem1','Directivity_C_2D_*.csv');
 src(2).meas = '';
@@ -155,13 +156,24 @@ function S = readCutFile(file)
 end
 
 function S = loadMeasurement(file)
-    % Placeholder until the lab data format is known.
-    % Must return the same struct as readCuts:
+    % Returns the same struct as readCuts:
     %   f [GHz], phi [deg], theta [deg], Q (columns in dB), qnames
+    %   .mat : file written by prepare_measurement.m (variable S, columns
+    %          DirTotal / DirCo / DirCx, theta limited to the valid scan span)
+    %   .csv : data in HFSS-like layout (wildcards OK)
     S = [];
     if isempty(file), return; end
     [~,~,ext] = fileparts(file);
     switch lower(ext)
+        case '.mat'
+            if ~isfile(file)
+                error('loadMeasurement: %s not found - run prepare_measurement.m first', file);
+            end
+            L = load(file,'S');
+            if ~isfield(L,'S'), error('loadMeasurement: no variable S in %s', file); end
+            S = L.S;
+            S.qnames = regexprep(S.qnames,'^dB\((.*)\).*$','$1');
+            fprintf('Loaded measurement %s: f = %s GHz\n', file, mat2str(unique(S.f).'));
         case '.csv'
             S = readCuts(file);      % works if the data is put in HFSS-like layout (wildcards OK)
         otherwise
@@ -220,9 +232,10 @@ function s = sll(D,i0)
 end
 
 function b = backLevel(t,D)
-    % Directivity at theta = +-180 deg (back direction)
-    [~,ib] = max(abs(t));
-    b = D(ib);
+    % Directivity at theta = +-180 deg (back direction); NaN if the cut does
+    % not reach the back (e.g. measurement limited to |theta| <= 120 deg)
+    [tb,ib] = max(abs(t));
+    if tb < 179, b = NaN; else, b = D(ib); end
 end
 
 function [fu,pk] = peakVsFreq(S,phis)
