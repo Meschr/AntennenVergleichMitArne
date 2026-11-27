@@ -9,7 +9,8 @@ clear; close all; clc;
 cfg.theoryFile    = fullfile('Theory_Results','theory_horns.mat');
 cfg.outDir        = 'plotresults';
 cfg.formats       = {'png','pdf'};   % add 'fig' to also save MATLAB .fi g files
-cfg.fTolGHz       = 0.05;            % max mismatch when pairing frequencies
+cfg.fTolGHz       = 0.06;            % max mismatch when pairing frequencies
+                                     % (C-band meas. has 4.95 GHz, theory/HFSS 4.90 GHz)
 cfg.phiH          = 0;               % H-plane cut in HFSS/measurement [deg]
 cfg.phiE          = 90;              % E-plane cut [deg]
 cfg.dynRange      = 60;              % plotted dynamic range [dB]
@@ -24,7 +25,8 @@ src(1).meas = fullfile('Measurement_Results','NSI_SGH_Group2','NSI_SGH_Group2_FF
                                      % built by Measurement_Results/NSI_SGH_Group2/prepare_measurement.m
 src(2).name = 'C-band';
 src(2).hfss = fullfile('Simulation_Results','Problem1','Directivity_C_2D_*.csv');
-src(2).meas = '';
+src(2).meas = fullfile('Measurement_Results','C_band','C_band_FF.mat');
+                                     % built by Measurement_Results/C_band/prepare_measurement.m
 
 %% ---- Load theory ---------------------------------------------------------
 if ~exist(cfg.outDir,'dir'), mkdir(cfg.outDir); end
