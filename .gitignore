@@ -72,4 +72,7 @@ desktop.ini
 *.temp
 *.swp
 *.swo
-*~
+
+# Exclude Plot and Simulation Results
+Project/plotresults/
+Project/Theory_Results/
